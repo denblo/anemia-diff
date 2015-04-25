@@ -35,7 +35,7 @@ class MainPage(webapp2.RequestHandler):
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
 
-        template = jinja_environment.get_template('index.html')
+        template = jinja_environment.get_template('templates/index.html')
         self.response.out.write(template.render(greetings=greetings,
                                                 url=url,
                                                 url_linktext=url_linktext))

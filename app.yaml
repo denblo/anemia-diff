@@ -6,11 +6,11 @@ threadsafe: true
 
 handlers:
 - url: /favicon\.ico
-  static_files: favicon.ico
+  static_files: assets/favicon.ico
   upload: favicon\.ico
 
-- url: /bootstrap
-  static_dir: bootstrap
+- url: /assets
+  static_dir: assets
 
 - url: /.*
   script: guestbook.application
