@@ -53,10 +53,11 @@ anonymouse_menu_items = [
         ("/about", u'О программе')
         ]
 
-class AppPage(webapp2.RequestHandler):
+class BaseAuthHandler(webapp2.RequestHandler):
     def get_logged_user(self):
         return users.get_current_user()
 
+class AppPage(BaseAuthHandler):
     def get_template_context(self):
         context = {}
 
@@ -114,7 +115,7 @@ class PacientsPage(PrivatePage):
 class CabinetPage(PrivatePage):
     pass
 
-class PacientCreate(webapp2.RequestHandler):
+class PacientCreate(BaseAuthHandler):
     def post(self):
         if not self.get_logged_user():
             self.abort(403)
@@ -140,7 +141,7 @@ class PacientCreate(webapp2.RequestHandler):
         
         self.redirect('/pacient/%d' % pacient_key.id())
 
-class SaveAnalyzePage(webapp2.RequestHandler):
+class SaveAnalyzePage(BaseAuthHandler):
     def post(self):
         if not self.get_logged_user():
             self.abort(403)
