@@ -1,0 +1,50 @@
+<!doctype html>
+{% autoescape true %}
+<html>
+  
+  <head>
+    <title>Anemina differential diagnosis helper</title>
+    <meta name="viewport" content="width=device-width">
+    <link type="text/css" rel="stylesheet" href="/assets/css/bootstrap.css" rel="stylesheet">
+    <!--<link type="text/css" rel="stylesheet" href="/assets/css/bootstrap-theme.css" rel="stylesheet">-->
+  </head>
+  
+  <body>
+    <div class="navbar navbar-default">
+      <div class="container">
+       
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+              {% for item in menu %}
+              <li class="{% if item['is_active'] %}active{% endif %}">
+                <a href="{{ item["url"] }}">{{ item["title"] }}</a>
+            </li>
+              {% endfor %}
+          </ul>
+              {% if user['is_logged'] %}
+          <div class="nav-collapse pull-right">
+            <a href="{{ user['url'] | safe }}" class="btn navbar-btn btn-default">Logout</a>
+          </div>
+              {% else %}
+          <div class="nav-collapse pull-right">
+            <a href="{{ user['url'] | safe }}" class="btn navbar-btn btn-default">Login</a>
+          </div>
+              {% endif %}
+        </div>
+        <!--/.navbar-collapse -->
+      </div>
+    </div>
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="container">
+        {% block page %}
+        {% endblock %}
+      <hr>
+      <footer>
+        <p>&copy; Company 2013</p>
+      </footer>
+    </div>
+    <!-- /container -->
+  </body>
+
+</html>
+{% endautoescape %}

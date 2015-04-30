@@ -1,0 +1,29 @@
+{% extends "page.html" %}
+{% block page %}
+<h1>Данные о пациенте</h1>
+<table class="table">
+    <tbody>
+        <tr>
+            <td>Имя</td>
+            <td>{{ pacient.last_name }}</td>
+        </tr>
+        <tr>
+            <td>Фамилия</td>
+            <td>{{ pacient.first_name }}</td>
+        </tr>
+        <tr>
+            <td>Отчество</td>
+            <td>{{ pacient.middle_name }}</td>
+        </tr>
+        {% for analyze in analyzes %}
+        <tr>
+            <td>{{ analyze.analyze_type }}</td>
+            <td>{{ analyze.analyze_value }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Прогресс анализа:</h2>
+    {% block analyze_step %}
+    {% endblock %}
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "pacient_info.html" %}
+{% block analyze_step %}
+<form method="POST" action="/save-analyze">
+    <div class="form-group">
+        <label class="control-label">Введите значение показателя MCH</label>
+        <div class="controls">
+            <input type="text" class="form-control" name="analyze_value">
+        </div>
+    </div>
+    <input type="hidden" name="pacient_id" value="{{ pacient.key.id() }}" />
+    <input type="hidden" name="analyze_type" value="MCH" />
+    <button class="btn btn-default">Сохранить</button>
+</form>
+{% endblock %}
