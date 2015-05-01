@@ -15,15 +15,21 @@
             <td>Отчество</td>
             <td>{{ pacient.middle_name }}</td>
         </tr>
+    </tbody>
+</table>
+<h2>Анализы:</h2>
+<table class="table">
+    <tbody>
         {% for analyze in analyzes %}
         <tr>
             <td>{{ analyze.analyze_type }}</td>
             <td>{{ analyze.analyze_value }}</td>
+            <td><a class="btn btn-default" href="/remove-analyze/{{ pacient.key.id() }}/{{ analyze.analyze_type }}">remove</a></td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-<h2>Прогресс анализа:</h2>
+<h2>Диагностика:</h2>
     {% block analyze_step %}
     {% endblock %}
 {% endblock %}

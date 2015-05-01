@@ -104,10 +104,14 @@ class PrivatePage(AppPage):
         super(PrivatePage, self).get()
 
 class PacientsPage(PrivatePage):
-    def get(self):
-        first_name = self.request.get("first_name")
+    def get_template_context(self):
+        context = super(PacientsPage, self).get_template_context()
 
-        super(PacientsPage, self).get()
+        pacients = Pacient.query().fetch(20)
+
+        context['pacients'] = pacients
+
+        return context
 
     def get_page_template(self):
         return 'pacient_card.html'
@@ -162,6 +166,20 @@ class SaveAnalyzePage(BaseAuthHandler):
 
         future.get_result()
         
+        self.redirect('/pacient/%d' % pacient_key.id())
+
+class RemoveAnalyzePage(BaseAuthHandler):
+    @ndb.toplevel
+    def get(self, pacient_id, analyze_type):
+        if not self.get_logged_user():
+            self.abort(403)
+
+        pacient_key = ndb.Key(Pacient, int(pacient_id)) 
+
+        pacient_analyze = PacientAnalyze.query(PacientAnalyze.pacient_key == pacient_key, PacientAnalyze.analyze_type == analyze_type).get()
+        if pacient_analyze:
+            result = pacient_analyze.key.delete_async().get_result()
+
         self.redirect('/pacient/%d' % pacient_key.id())
 
 class PacientPage(AppPage):
@@ -322,7 +340,7 @@ class PacientPage(AppPage):
 
         return 'forms/result/unknown.html'
 
-application = webapp2.WSGIApplication([
+application = ndb.toplevel(webapp2.WSGIApplication([
     ('/', AppPage),
     ('/pacients', PacientsPage),
     ('/stats', AppPage),
@@ -331,4 +349,5 @@ application = webapp2.WSGIApplication([
     ('/pacient-create', PacientCreate),
     ('/pacient/(\d+)', PacientPage),
     ('/save-analyze', SaveAnalyzePage),
-], debug=True)
+    ('/remove-analyze/(\d+)/(\w+)', RemoveAnalyzePage),
+], debug=True))

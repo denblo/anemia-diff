@@ -50,4 +50,18 @@
 </div>
 <div class="col-md-4 col-md-offset-2"></div>
 </div>
+
+<h2>Пациенты:</h2>
+<table class="table">
+    <tbody>
+        {% for pacient in pacients %}
+        <tr>
+            <td> <a href="/pacient/{{ pacient.key.id() }}">{{ pacient.key.id() }}</a></td>
+            <td>{{ pacient.first_name }} </td>
+            <td>{{ pacient.middle_name }} </td>
+            <td>{{ pacient.last_name }} </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}
