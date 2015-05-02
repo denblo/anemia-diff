@@ -1,0 +1,20 @@
+{
+  "name": "anemia-diff",
+  "version": "0.0.0",
+  "authors": [
+    "Denis Blokhin <sopplet@gmail.com>"
+  ],
+  "license": "MIT",
+  "homepage": "http://anemia-dd-helper.appspot.com",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.4",
+    "bootstrap-datepicker": "eternicode/bootstrap-datepicker#~1.4.0"
+  }
+}
