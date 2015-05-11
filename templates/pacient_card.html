@@ -5,6 +5,12 @@
     <h1>Карта пациента</h1>
     <form class="form-horizontal" method="POST" action="/pacient-create">
         <div class="form-group">
+            <label class="control-label col-xs-4">Номер карты</label>
+            <div class="controls col-xs-8">
+                <input type="text" name="card_no" class="form-control">
+            </div>
+        </div>
+        <div class="form-group">
             <label class="control-label col-xs-4">Фамилия</label>
             <div class="controls col-xs-8">
                 <input type="text" name="first_name" class="form-control">
@@ -38,6 +44,13 @@
                 </select>
             </div>
         </div>
+        <div class="form-group">
+            <label class="control-label col-xs-4">Фаза цикла*</label>
+            <div class="controls col-xs-8">
+                <input type="text" name="cycle_faze" class="form-control">
+                <small>Только для женщин</small>
+            </div>
+        </div>
         <hr />
         <div class="form-group">
             <label class="control-label col-xs-4">Дополнительные данные</label>
@@ -50,18 +63,4 @@
 </div>
 <div class="col-md-4 col-md-offset-2"></div>
 </div>
-
-<h2>Пациенты:</h2>
-<table class="table">
-    <tbody>
-        {% for pacient in pacients %}
-        <tr>
-            <td> <a href="/pacient/{{ pacient.key.id() }}">{{ pacient.key.id() }}</a></td>
-            <td>{{ pacient.first_name }} </td>
-            <td>{{ pacient.middle_name }} </td>
-            <td>{{ pacient.last_name }} </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
 {% endblock %}

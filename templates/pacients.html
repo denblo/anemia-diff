@@ -1,0 +1,50 @@
+{% extends "page.html" %}
+{% block page %}
+<div class="row">
+<div class="col-md-6">
+    <h1>Поиск</h1>
+    <form class="form-horizontal" method="POST" action="/pacients">
+        <div class="form-group">
+            <label class="control-label col-xs-3">Номер карты</label>
+            <div class="controls col-xs-8">
+                <input type="text" name="card_no" class="form-control" value="{{ card_no }}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-xs-3">Фамилия</label>
+            <div class="controls col-xs-8">
+                <input type="text" name="first_name" class="form-control" value="{{ first_name }}">
+            </div>
+        </div>
+        <div class="row">
+            <a href="/pacients" class="btn btn-default col-xs-offset-4 col-xs-3">Сбросить</a>
+            <button class="btn btn-default col-xs-offset-1 col-xs-3">Искать</button>
+        </div>
+    </form>
+</div>
+<div class="col-md-4 col-md-offset-2">
+    <a href="/pacient-create" class="btn btn-default">Добавить пациента</a>
+</div>
+</div>
+<h2>Пациенты:</h2>
+<table class="table">
+    <thead>
+        <tr>
+          <th>№ карты</th>
+          <th>Фамилия</th>
+          <th>Имя</th>
+          <th>Отчество</th>
+        </tr>
+      </thead> 
+    <tbody>
+        {% for pacient in pacients %}
+        <tr>
+            <td> <a href="/pacient/{{ pacient.key.id() }}">{{ pacient.card_no if pacient.card_no else "<unknown>" }}</a></td>
+            <td>{{ pacient.first_name }} </td>
+            <td>{{ pacient.last_name }} </td>
+            <td>{{ pacient.middle_name }} </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

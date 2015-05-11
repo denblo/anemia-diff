@@ -3,6 +3,7 @@ import jinja2
 import os
 import webapp2
 import datetime
+import math
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
@@ -26,15 +27,30 @@ class Greeting(ndb.Model):
     author = ndb.UserProperty()
     content = ndb.StringProperty(indexed=False)
     date = ndb.DateTimeProperty(auto_now_add=True)
+    
+
+def format_age(self):
+    days = (datetime.datetime.today() - self.birthday_date).days
+    years = math.floor(days / 365.2425)
+    
+    if years < 1:
+        months = math.floor(days / 30)
+        return u"%d месяц" % months
+    
+    return u"%d лет" % years
+    
 
 class Pacient(ndb.Model):
-    first_name = ndb.StringProperty(indexed=False)
+    card_no = ndb.StringProperty()
+    first_name = ndb.StringProperty()
     last_name = ndb.StringProperty(indexed=False)
     middle_name = ndb.StringProperty(indexed=False)
     birthday_date = ndb.DateTimeProperty(auto_now_add=False)
     sex = ndb.StringProperty(indexed=False)
     date = ndb.DateTimeProperty(auto_now_add=True)
     extra = ndb.StringProperty(indexed=False)
+    age = ndb.ComputedProperty(format_age) 
+    cycle_faze = ndb.StringProperty(indexed=False)
 
 class PacientAnalyze(ndb.Model):
     pacient_key = ndb.KeyProperty()
@@ -114,12 +130,40 @@ class PacientsPage(PrivatePage):
         return context
 
     def get_page_template(self):
-        return 'pacient_card.html'
+        return 'pacients.html'
+        
+    def post(self):
+        context = super(PacientsPage, self).get_template_context()
+        
+        first_name = self.request.get("first_name")
+        card_no = self.request.get("card_no")
+        
+        query = Pacient.query()
+        
+        if first_name:
+            query = query.filter(Pacient.first_name == first_name )
+            context['first_name'] = first_name
+            
+        if card_no:
+            query = query.filter(Pacient.card_no == card_no )
+            context['card_no'] = card_no
+            
+        pacients = query.fetch(20)
+        
+        print(len(pacients))
+        
+        context['pacients'] = pacients
+        
+        template = jinja_environment.get_template(self.get_page_template())
+        self.response.out.write(template.render(context))
 
 class CabinetPage(PrivatePage):
     pass
 
-class PacientCreate(BaseAuthHandler):
+class PacientCreate(PrivatePage):
+    def get_page_template(self):
+        return 'pacient_card.html'
+        
     def post(self):
         if not self.get_logged_user():
             self.abort(403)
@@ -130,6 +174,9 @@ class PacientCreate(BaseAuthHandler):
         birthday_date = self.request.get("birthday_date")
         sex = self.request.get("sex")
         extra_data = self.request.get("extra_data")
+        
+        card_no = self.request.get("card_no")
+        cycle_faze = self.request.get("cycle_faze")
 
         if first_name == "" or last_name == "" or birthday_date =="":
             return self.redirect('/pacients', body={"first_name": "bad_name"})
@@ -140,6 +187,8 @@ class PacientCreate(BaseAuthHandler):
         pacient.middle_name = middle_name
         pacient.birthday_date = datetime.datetime.strptime(birthday_date, "%d.%m.%Y")
         pacient.sex = sex
+        pacient.card_no = card_no
+        pacient.cycle_faze = cycle_faze
 
         pacient_key = pacient.put()
         
