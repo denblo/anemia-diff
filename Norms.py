@@ -127,4 +127,5 @@ analyze_helper = AnalyzeHelper(
 analyze_helper.accept_analyze_map({
     "Fe": "4"
     })
+    
 print(analyze_helper.compare_value("Fe", "male", 10))
