@@ -4,10 +4,15 @@
     <div class="form-group">
         <label class="control-label">Введите значение показателя MCV</label>
         <div class="controls">
-            <input type="text" class="form-control" name="analyze_value">
+            <div class="input-group">
+                <input type="text" class="form-control" name="analyze_value">
+                <span class="input-group-addon">фл</span> 
+            </div>
         </div>
     </div>
+    
     <input type="hidden" name="pacient_id" value="{{ pacient.key.id() }}" />
+    
     <input type="hidden" name="analyze_type" value="MCV" />
     <button class="btn btn-default">Сохранить</button>
 </form>

@@ -21,23 +21,36 @@
         </tr>
         <tr>
             <td>Возраст</td>
-            <td>{{ pacient.age }}</td>
+            <td>{{ pacient.get_formatted_age() }}</td>
         </tr>
     </tbody>
 </table>
 <h2>Анализы:</h2>
 <table class="table">
+    <thead>
+        <tr>
+          <th>Показание</th>
+          <th>Значение</th>
+          <th>Дата приема</th>
+          <th>Действия</th>
+        </tr>
+      </thead> 
     <tbody>
         {% for analyze in analyzes %}
         <tr>
-            <td>{{ analyze.analyze_type }}</td>
-            <td>{{ analyze.analyze_value }}</td>
-            <td><a class="btn btn-default" href="/remove-analyze/{{ pacient.key.id() }}/{{ analyze.analyze_type }}">remove</a></td>
+            <td>{{ analyze.get_analyze_title() }}</td>
+            <td>{{ analyze.get_formatted_value() }}</td>
+            <td>{{ analyze.date.strftime("%d.%m.%Y %H:%M") }}</td>
+            <td><a class="btn btn-default" href="/remove-analyze/{{ pacient.key.id() }}/{{ analyze.analyze_type }}">Удалить</a></td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 <h2>Диагностика:</h2>
+<div class="row">
+    <div class="col-md-6">
     {% block analyze_step %}
     {% endblock %}
+    </div>
+</div>
 {% endblock %}

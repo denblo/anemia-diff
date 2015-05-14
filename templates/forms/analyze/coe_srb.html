@@ -1,0 +1,25 @@
+{% extends "pacient_info.html" %}
+{% block analyze_step %}
+<form method="POST" action="/save-analyze">
+    <div class="form-group">
+        <label class="control-label">Выберите показатель СОЕ или СРБ</label>
+        <div class="controls">
+            <select name="analyze_type" class="form-control">
+                <option value="COE">СОЕ</option>
+                <option value="SRB">СРБ</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label">Введите значение показателя</label>
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" class="form-control" name="analyze_value">
+                <span class="input-group-addon">СОЕ: мм/час, СРБ: мг/л</span> 
+            </div>
+        </div>
+    </div>
+    <input type="hidden" name="pacient_id" value="{{ pacient.key.id() }}" />
+    <button class="btn btn-default">Сохранить</button>
+</form>
+{% endblock %}

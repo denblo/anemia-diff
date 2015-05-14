@@ -1,0 +1,18 @@
+{% extends "pacient_info.html" %}
+{% block analyze_step %}
+<form method="POST" action="/save-analyze">
+    <div class="form-group">
+        <label class="control-label">Оцените значение показателя B12</label>
+        <div class="controls">
+            <select name="analyze_value" class="form-control" size="3">
+                <option value="-1">Пониженное</option>
+                <option value="1">Повышенное</option>
+                <option value="0">Нормальное</option>
+            </select>
+        </div>
+    </div>
+    <input type="hidden" name="pacient_id" value="{{ pacient.key.id() }}" />
+    <input type="hidden" name="analyze_type" value="B12" />
+    <button class="btn btn-default">Сохранить</button>
+</form>
+{% endblock %}

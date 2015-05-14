@@ -4,9 +4,12 @@ import os
 import webapp2
 import datetime
 import math
+import json
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
+from Norms import UserAnalyzes 
+from Norms import analyzes_map 
 
 # We set a parent key on the 'Greetings' to ensure that they are all in the same
 # entity group. Queries across the single entity group will be consistent.
@@ -27,18 +30,6 @@ class Greeting(ndb.Model):
     author = ndb.UserProperty()
     content = ndb.StringProperty(indexed=False)
     date = ndb.DateTimeProperty(auto_now_add=True)
-    
-
-def format_age(self):
-    days = (datetime.datetime.today() - self.birthday_date).days
-    years = math.floor(days / 365.2425)
-    
-    if years < 1:
-        months = math.floor(days / 30)
-        return u"%d месяц" % months
-    
-    return u"%d лет" % years
-    
 
 class Pacient(ndb.Model):
     card_no = ndb.StringProperty()
@@ -49,14 +40,46 @@ class Pacient(ndb.Model):
     sex = ndb.StringProperty(indexed=False)
     date = ndb.DateTimeProperty(auto_now_add=True)
     extra = ndb.StringProperty(indexed=False)
-    age = ndb.ComputedProperty(format_age) 
     cycle_faze = ndb.StringProperty(indexed=False)
+    
+    def get_age(self):
+        days = (datetime.datetime.today() - self.birthday_date).days
+        return math.floor(days / 365.2425)
+        
+    def get_formatted_age(self):
+        days = (datetime.datetime.today() - self.birthday_date).days
+        years = math.floor(days / 365.2425)
+        
+        if years < 1:
+            months = math.floor(days / 30)
+            return u"%d месяц" % months
+        
+        return u"%d лет" % years
+        
 
 class PacientAnalyze(ndb.Model):
     pacient_key = ndb.KeyProperty()
     #analyze_type = ndb.KeyProperty()
     analyze_type = ndb.StringProperty()
     analyze_value = ndb.StringProperty(indexed=False)
+    date = ndb.DateTimeProperty(auto_now_add=True)
+    
+    def get_analyze(self):
+        if self.analyze_type in analyzes_map:
+            return analyzes_map[self.analyze_type]
+        return None
+        
+    def get_analyze_title(self):
+        analyze = self.get_analyze()
+        if analyze:
+            return analyze.title
+        return "UNKNOWN"
+        
+    def get_formatted_value(self):
+        analyze = self.get_analyze()
+        if analyze:
+            return analyze.format_value(self.analyze_value)
+        return self.analyze_value
 
 menu_items = [
         ("/cabinet",u'Личный кабинет' ),
@@ -150,8 +173,6 @@ class PacientsPage(PrivatePage):
             
         pacients = query.fetch(20)
         
-        print(len(pacients))
-        
         context['pacients'] = pacients
         
         template = jinja_environment.get_template(self.get_page_template())
@@ -203,6 +224,8 @@ class SaveAnalyzePage(BaseAuthHandler):
         analyze_value = self.request.get("analyze_value")
         pacient_id = self.request.get("pacient_id")
         pacient_key = ndb.Key(Pacient, int(pacient_id)) 
+        
+        print(self.request.POST)
 
         pacient_analyze = PacientAnalyze.query(PacientAnalyze.pacient_key == pacient_key, PacientAnalyze.analyze_type == analyze_type).get()
         if not pacient_analyze:
@@ -210,6 +233,7 @@ class SaveAnalyzePage(BaseAuthHandler):
 
         pacient_analyze.analyze_value = analyze_value
 
+        print(pacient_analyze)
         pacient_analyze.put(use_cache=False)
         future = pacient_analyze.put_async()
 
@@ -241,7 +265,7 @@ class PacientPage(AppPage):
         pacient = Pacient.get_by_id(int(pacient_id))
         context['pacient'] = pacient
 
-        analyzes = PacientAnalyze.query(PacientAnalyze.pacient_key == pacient.key).fetch()
+        analyzes = PacientAnalyze.query(PacientAnalyze.pacient_key == pacient.key).order(PacientAnalyze.date).fetch()
         context['analyzes'] = analyzes
 
         template = jinja_environment.get_template(self.analyze(pacient, analyzes))
@@ -256,24 +280,29 @@ class PacientPage(AppPage):
         analyze_value_map = {}
         for analyze in analyzes:
             analyze_value_map[analyze.analyze_type] = analyze.analyze_value
+            
+        user_analyzes = UserAnalyzes(pacient, analyze_value_map)
 
-        if not 'MCV' in analyze_value_map:
-            return 'forms/analyze/mcv.html'
+        mcv_cmp = user_analyzes.compare_value('MCV')
+        if not mcv_cmp.is_present():
+            return mcv_cmp.get_template() 
+        
+        # if not 'MCH' in analyze_value_map:
+            # return 'forms/analyze/mch.html'
 
-        if not 'MCH' in analyze_value_map:
-            return 'forms/analyze/mch.html'
-
-        MCV = int(analyze_value_map['MCV'])
-        MCH = int(analyze_value_map['MCH'])
-
-        if MCV < 80:
+        if mcv_cmp.is_lower():
             is_left_branch = False
-
-            if not 'Fe' in analyze_value_map:
-                return 'forms/analyze/fe.html'
-
-            Fe = analyze_value_map['Fe']
-            if Fe == 'N':
+            
+            fe_cmp = user_analyzes.compare_value('Fe')
+            ferritin_cmp = user_analyzes.compare_value('Ferritin')
+            
+            if not fe_cmp.is_present():
+                return fe_cmp.get_template() 
+            
+            # if not ferritin_cmp.is_present():
+            #     return ferritin_cmp.get_template()
+            
+            if fe_cmp.is_norm():
                 if not 'Ferritin' in analyze_value_map:
                     return 'forms/analyze/ferritin.html'
 
@@ -281,111 +310,187 @@ class PacientPage(AppPage):
                 if Ferritin == VALUE_DOWN:
                     is_left_branch = True
 
-            elif Fe == VALUE_DOWN:
+            elif fe_cmp.is_lower():
                 is_left_branch = True
 
             if is_left_branch:
                 return 'forms/result/zhda.html'
 
-            if not 'COE' in analyze_value_map:
-                return 'forms/analyze/coe.html'
-
-            if not 'SRB' in analyze_value_map:
-                return 'forms/analyze/srb.html'
-
-            COE = analyze_value_map['COE']
-            SRB = analyze_value_map['SRB']
+            coe_cmp = user_analyzes.compare_value('COE')
+            srb_cmp = user_analyzes.compare_value('SRB')
             
-            if COE == VALUE_DOWN or SRB == VALUE_DOWN:
+            if coe_cmp.is_present():
+                coe_srb_cmp = coe_cmp
+            else: 
+                coe_srb_cmp = srb_cmp
+                
+            if not coe_srb_cmp.is_present():
+                return 'forms/analyze/coe_srb.html'
+
+            if coe_srb_cmp.is_lower() or coe_srb_cmp.is_lower():
                 return 'forms/result/unknown.html'
-
-            if not 'Hb' in analyze_value_map:
-                return 'forms/analyze/hb.html'
-
-            Hb = analyze_value_map['Hb']
-
-            if Hb == VALUE_UP:
-                return 'forms/result/gemoglobinopaty.html'
-
-            if Hb == VALUE_N:
+                
+            if coe_srb_cmp.is_upper():
                 return 'forms/result/ahz.html'
+                
+            if not 'FractG' in analyze_value_map:
+                return 'forms/analyze/fract_gemoglob.html'
+
+            FractG = json.loads(analyze_value_map['FractG'])
+            
+            try:
+                fg_a = float(FractG[u'a'])
+            except ValueError:
+                fg_a = 0
+                
+            try:
+                fg_a2 = float(FractG[u'a2'])
+            except ValueError:
+                fg_a2 = 0
+                
+            try:
+                fg_f = float(FractG[u'f'])
+            except ValueError:
+                fg_f = 0
+                
+            try:
+                fg_s = float(FractG[u's'])
+            except ValueError:
+                fg_s = 0
+                
+            fg_anom = FractG[u'anom']
+            
+            if fg_a > 97 and fg_a2 < 3 and fg_f < 1:
+                return 'forms/result/ahz_2.html'
+                
+            if fg_a2 > 3 or fg_f > 1:
+                return 'forms/result/beta_talassem.html'
+                
+            if fg_s > 0:
+                return 'forms/result/gemoglobinopaty_s.html'
+                
+            if fg_a < 97 and fg_anom:
+                return 'forms/result/gemoglobinopaty_other.html'
 
             return 'forms/result/unknown.html'
 
-        if MCH > 100:
-            if not 'Bfolats' in analyze_value_map:
-                return 'forms/analyze/bfolats.html'
-
-            Bfolats = analyze_value_map['Bfolats']
-
-            if Bfolats == VALUE_DOWN:
-                return 'forms/result/anemia_b_deficit.html'
-
-            if not 'Ret' in analyze_value_map:
-                return 'forms/analyze/ret.html'
-
-            Ret = analyze_value_map['Ret']
+        if mcv_cmp.is_upper():
             
-            if Ret == VALUE_UP:
-                return 'forms/result/gemolitich_anemia.html'
+        # right tree start #
+        
+            b12_cmp = user_analyzes.compare_value('B12')
+            if not b12_cmp.is_present():
+                return b12_cmp.get_template() 
+                
+            if b12_cmp.is_lower():
+                return 'forms/result/b12deficit.html'
+        
+            folats_cmp = user_analyzes.compare_value('Folats')
+            if not folats_cmp.is_present():
+                return folats_cmp.get_template() 
 
-            return 'forms/result/ahz.html'
+            if folats_cmp.is_lower():
+                return 'forms/result/folideficit.html'
 
-        if not 'Ret' in analyze_value_map:
-            return 'forms/analyze/ret.html'
-
-        Ret = analyze_value_map['Ret']
-
-        if Ret == VALUE_UP:
-
-            if not 'NBiliruby' in analyze_value_map:
-                return 'forms/analyze/nbiliruby.html'
-
-            NBiliruby = analyze_value_map['NBiliruby']
+            if b12_cmp.is_norm() and folats_cmp.is_norm():
+                ret_cmp = user_analyzes.compare_value('Ret')
+                if not ret_cmp.is_present():
+                    return ret_cmp.get_template() 
+                
+                if ret_cmp.is_upper():
+                    return 'forms/result/gemolitich_anemia.html'
+    
+                else:
+                    srb_cmp = user_analyzes.compare_value('SRB')
+                    if not srb_cmp.is_present():
+                        return srb_cmp.get_template() 
+                    
+                    if srb_cmp.is_norm():
+                        return 'forms/result/postgemor_anemia.html'
+                    else:
+                        return 'forms/result/ahz.html'
             
-            if NBiliruby == VALUE_UP:
+        # right tree end #
+
+        # central tree start #
+        
+        if mcv_cmp.is_norm():
+        
+            ret_cmp = user_analyzes.compare_value('Ret')
+            if not ret_cmp.is_present():
+                return ret_cmp.get_template() 
+    
+            if ret_cmp.is_upper():
                 return 'forms/result/gemolitich_anemia.html'
+    
+                # if not 'NBiliruby' in analyze_value_map:
+                #     return 'forms/analyze/nbiliruby.html'
+    
+                # NBiliruby = analyze_value_map['NBiliruby']
+                
+                # if NBiliruby == VALUE_UP:
+                #     return 'forms/result/gemolitich_anemia.html'
+    
+                # if NBiliruby == VALUE_N:
+                #     return 'forms/result/orragich_anemia.html'
+    
+                # return 'forms/result/unknown.html'
+    
+            fe_cmp = user_analyzes.compare_value('Fe')
+            ferritin_cmp = user_analyzes.compare_value('Ferritin')
+            
+            if not fe_cmp.is_present():
+                return fe_cmp.get_template() 
+            
+            if not ferritin_cmp.is_present():
+                return ferritin_cmp.get_template() 
+                
+            if (fe_cmp.is_lower() or fe_cmp.is_norm()) and ferritin_cmp.is_lower():
+                return 'forms/result/zhda.html'
+                
+            if fe_cmp.is_norm() and (ferritin_cmp.is_norm() or ferritin_cmp.is_upper()):
+                rbc_cmp = user_analyzes.compare_value('RBC')
+                wbc_cmp = user_analyzes.compare_value('WBC')
+                plt_cmp = user_analyzes.compare_value('PLT')
+                
+                if not rbc_cmp.is_present():
+                    return rbc_cmp.get_template() 
+                    
+                if not wbc_cmp.is_present():
+                    return wbc_cmp.get_template() 
+                    
+                if not plt_cmp.is_present():
+                    return plt_cmp.get_template() 
+                    
+                if rbc_cmp.is_lower() and wbc_cmp.is_lower() and plt_cmp.is_lower():
+                    return 'forms/result/aplastich_anemia.html'
+                else:
+                    srb_cmp = user_analyzes.compare_value('SRB')
+                    if not srb_cmp.is_present():
+                        return srb_cmp.get_template() 
+                    
+                    if srb_cmp.is_norm():
+                        return 'forms/result/postgemor_anemia.html'
+                    else:
+                        return 'forms/result/ahz.html'
+                        
+        # central tree end #
 
-            if NBiliruby == VALUE_N:
-                return 'forms/result/orragich_anemia.html'
+        # if not 'COE' in analyze_value_map:
+        #     return 'forms/analyze/coe.html'
 
-            return 'forms/result/unknown.html'
+        # COE = analyze_value_map['COE']
 
-        is_left_branch = False
+        # if COE == VALUE_UP:
+        #     return 'forms/result/ahz.html'
 
-        if not 'Fe' in analyze_value_map:
-            return 'forms/analyze/fe.html'
+        # if not 'RBC' in analyze_value_map:
+        #     return 'forms/analyze/rbc.html'
 
-        Fe = analyze_value_map['Fe']
-        if Fe == 'N':
-            if not 'Ferritin' in analyze_value_map:
-                return 'forms/analyze/ferritin.html'
+        # RBC = analyze_value_map['RBC']
 
-            Ferritin = analyze_value_map['Ferritin']
-            if Ferritin == VALUE_DOWN:
-                is_left_branch = True
-
-        elif Fe == VALUE_DOWN:
-            is_left_branch = True
-
-        if is_left_branch:
-            return 'forms/result/zhda.html'
-
-        if not 'COE' in analyze_value_map:
-            return 'forms/analyze/coe.html'
-
-        COE = analyze_value_map['COE']
-
-        if COE == VALUE_UP:
-            return 'forms/result/ahz.html'
-
-        if not 'RBC' in analyze_value_map:
-            return 'forms/analyze/rbc.html'
-
-        RBC = analyze_value_map['RBC']
-
-        if RBC == VALUE_DOWN:
-            return 'forms/result/aplastich_anemia.html'
+        # if RBC == VALUE_DOWN:
+        #     return 'forms/result/aplastich_anemia.html'
 
         return 'forms/result/unknown.html'
 

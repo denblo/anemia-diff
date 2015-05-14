@@ -4,11 +4,10 @@
     <div class="form-group">
         <label class="control-label">Введите значение показателя COE</label>
         <div class="controls">
-            <select name="analyze_value" size="3">
-                <option value="↑">&uarr;</option>
-                <option value="↓">&darr;</option>
-                <option value="N">N</option>
-            </select>
+            <div class="input-group">
+                <input type="text" class="form-control" name="analyze_value">
+                <span class="input-group-addon">мм/час</span> 
+            </div>
         </div>
     </div>
     <input type="hidden" name="pacient_id" value="{{ pacient.key.id() }}" />

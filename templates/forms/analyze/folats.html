@@ -2,17 +2,17 @@
 {% block analyze_step %}
 <form method="POST" action="/save-analyze">
     <div class="form-group">
-        <label class="control-label">Введите значение показателя Hb</label>
+        <label class="control-label">Оцените значение показателя Фолаты</label>
         <div class="controls">
             <select name="analyze_value" size="3" class="form-control">
-                <option value="↑">&uarr;</option>
-                <option value="↓">&darr;</option>
-                <option value="N">N</option>
+                <option value="-1">Пониженное</option>
+                <option value="1">Повышенное</option>
+                <option value="0">Нормальное</option>
             </select>
         </div>
     </div>
     <input type="hidden" name="pacient_id" value="{{ pacient.key.id() }}" />
-    <input type="hidden" name="analyze_type" value="Hb" />
+    <input type="hidden" name="analyze_type" value="Folats" />
     <button class="btn btn-default">Сохранить</button>
 </form>
 {% endblock %}

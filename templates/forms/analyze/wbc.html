@@ -2,16 +2,16 @@
 {% block analyze_step %}
 <form method="POST" action="/save-analyze">
     <div class="form-group">
-        <label class="control-label">Введите значение показателя Fe</label>
+        <label class="control-label">Введите значение показателя WBC</label>
         <div class="controls">
             <div class="input-group">
                 <input type="text" class="form-control" name="analyze_value">
-                <span class="input-group-addon">мкмоль/л</span> 
+                <span class="input-group-addon">10^9/л</span> 
             </div>
         </div>
     </div>
     <input type="hidden" name="pacient_id" value="{{ pacient.key.id() }}" />
-    <input type="hidden" name="analyze_type" value="Fe" />
+    <input type="hidden" name="analyze_type" value="WBC" />
     <button class="btn btn-default">Сохранить</button>
 </form>
 {% endblock %}

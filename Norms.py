@@ -1,11 +1,32 @@
 # -*- coding: utf-8 -*-
+import json
+
+class AnalyzeCompare:
+    def __init__(self, analyze, compared_value):
+        self.compared_value = compared_value
+        self.analyze = analyze
+        
+    def is_present(self):
+        return not self.compared_value == None 
+        
+    def is_upper(self):
+        return self.compared_value > 0
+        
+    def is_lower(self):
+        return self.compared_value < 0
+        
+    def is_norm(self):
+        return self.compared_value == 0
+        
+    def get_template(self):
+        return 'forms/analyze/' + self.analyze.edit_template + '.html'
+
 class Norm:
     def __init__(self, norm, sex=None, age_from=None, age_to=None):
         self.sex = sex
         self.age_to = age_to
         self.age_from = age_from
         self.norm = norm
-        
 
 class AnalyzeNorms:
     def __init__(self, *norms):
@@ -25,27 +46,33 @@ class AnalyzeNorms:
             return 0
         
         if value < norm[0]:
-            return -1;
+            return -1
             
         if value > norm[1]:
-            return 1;
+            return 1
         
-        return 0;
+        return 0
 
 class Analyze:
-    def __init__(self, key, title, edit_template, norms):
+    def __init__(self, key, title, units, edit_template, norms):
         self.key = key
+        self.title = title
+        self.edit_template = edit_template
         self.norms = norms
+        self.units = units
+    
+    def format_value(self, value):
+        return value + " " + self.units
 
-FE = Analyze("Fe", "Железо", "fe", AnalyzeNorms(
+FE = Analyze("Fe", u"Железо", u"мкмоль/лЭ", "fe", AnalyzeNorms(
         Norm((13, 30), "male", 14),
         Norm((12, 25), "female", 14),
         Norm((9, 21.5), None, 0.083, 14),
-        Norm((17.8, 14.8), age_to=0.083)
+        Norm((14.8, 17.8), age_to=0.083)
     )
 )
 
-Ferritin = Analyze("Ferritin", "Ферритин", "ferritin", AnalyzeNorms(
+Ferritin = Analyze("Ferritin", u"Ферритин", u"мкг/л", "ferritin", AnalyzeNorms(
         Norm((20, 250), "male", 14),
         Norm((10, 120), "female", 14),
         Norm((6, 320), None, 5, 14),
@@ -56,63 +83,69 @@ Ferritin = Analyze("Ferritin", "Ферритин", "ferritin", AnalyzeNorms(
     )
 )
 
-SRB = Analyze("SRB", "СРБ", "srb", AnalyzeNorms(
+SRB = Analyze("SRB", u"СРБ", u"мг/л", "srb", AnalyzeNorms(
         Norm((0, 5))
     )
 )
 
-COE = Analyze("COE", "КОЕ", "coe", AnalyzeNorms(
+COE = Analyze("COE", u"КОЕ", u"мм/час", "coe", AnalyzeNorms(
         Norm((2, 10), "male"),
         Norm((2, 15), "female")
     )
 )
 
-Ret = Analyze("Ret", "РЕТ", "ret", AnalyzeNorms(
+Ret = Analyze("Ret", u"Ретикулоциты", u"%", "ret", AnalyzeNorms(
         Norm((0.2, 1.2))
     )
 )
     
-WBC = Analyze("WBC", "ВБЦ", "", AnalyzeNorms(
+WBC = Analyze("WBC", u"ВБЦ", u"10^9/л", "wbc", AnalyzeNorms(
         Norm((4, 9))
     )
 )
     
-RBC = Analyze("RBC", "РБЦ", "", AnalyzeNorms(
+RBC = Analyze("RBC", u"РБЦ", u"10^12/л", "rbc", AnalyzeNorms(
         Norm((4, 5), "male"),
         Norm((3.8, 4.5), "female")
     )
 )
 
-PLT = Analyze("PLT", "ПЛТ", "",  AnalyzeNorms(
+PLT = Analyze("PLT", u"ПЛТ", u"10^9/л", "plt",  AnalyzeNorms(
         Norm((150, 400))
     )
 )
 
-MCV = Analyze("MCV", "МЦВ", "mcv",  AnalyzeNorms(
+MCV = Analyze("MCV", u"МЦВ", u"фл", "mcv",  AnalyzeNorms(
         Norm((80, 100))
     )
 )
 
-class AnalyzeHelper:
-    def __init__(self, *analyzes):
-        self.analyzes = {analyze.key: analyze for analyze in analyzes}
-        
-    def accept_analyze_map(self, analyze_value_map):
-        self.analyze_value_map = analyze_value_map
-        
-    def has_analyze(self, analyze_key):
-        if self.analyze_value_map and analyze_key in self.analyze_value_map:
-            return True
-        
-        return False
-        
-    def compare_value(self, analyze_key, sex, age):
-        value = int(self.analyze_value_map[analyze_key])
-        analyze = self.analyzes[analyze_key]
-        
-        return analyze.norms.compare_value( sex, age, value )
-        
-analyze_helper = AnalyzeHelper(
+B12 = Analyze("B12", u"B12", "", "b12", AnalyzeNorms(
+        Norm((0, 0))
+    )
+)
+Folats = Analyze("Folats", u"Фолаты", "", "folats", AnalyzeNorms(
+        Norm((0, 0))
+    )
+)
+
+class FractGAnalyze(Analyze):
+    def __init__(self, key, title, edit_template):
+        Analyze.__init__(self, key, title, "", edit_template, AnalyzeNorms())
+    
+    def format_value(self, value):
+        value = json.loads(value)
+        items = filter(lambda x: not x[0] == u'anom', value.items())
+        items_strs = [item[0] + "=" + item[1] + "%" for item in items]
+        anom = value[u'anom']
+        if anom:
+            items_strs.append(u"Аномальный ген: " + anom)
+
+        return ", ".join(items_strs) 
+
+FractG = FractGAnalyze("FractG", u"Фракции гемоглобина", "fract_gemoglob" )
+
+analyze_list = [ 
     FE,
     Ferritin,
     SRB,
@@ -121,11 +154,35 @@ analyze_helper = AnalyzeHelper(
     WBC,
     RBC,
     PLT,
-    MCV
-)
+    MCV,
+    B12,
+    Folats,
+    FractG
+]
 
-analyze_helper.accept_analyze_map({
-    "Fe": "4"
-    })
+analyzes_map = {analyze.key: analyze for analyze in analyze_list}
+
+class UserAnalyzes:
+    def __init__(self, user, analyze_value_map):
+        self.user = user
+        self.analyze_value_map = analyze_value_map
+        
+    def has_analyze(self, analyze_key):
+        if self.analyze_value_map and analyze_key in self.analyze_value_map:
+            return True
+        return False
     
-print(analyze_helper.compare_value("Fe", "male", 10))
+    def compare_value(self, analyze_key):
+        analyze = analyzes_map[analyze_key]
+        
+        if not self.has_analyze(analyze_key):
+            return AnalyzeCompare(analyze, None)
+        try:
+            value = float(self.analyze_value_map[analyze_key])
+        except ValueError:
+            value = -1
+        
+        compared_value = analyze.norms.compare_value( self.user.sex, self.user.get_age(), value )
+        print(analyze.key, value, compared_value)
+        
+        return AnalyzeCompare(analyze, compared_value)

@@ -1,0 +1,80 @@
+{% extends "pacient_info.html" %}
+{% block analyze_step %}
+<h4>Рекомендуется провести электрофорез гемоглобина</h4>
+<form method="POST" action="/save-analyze" id="fact_gemog_form">
+    <div class="form-group">
+        <label class="control-label">A</label>
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" class="form-control" name="a">
+                <span class="input-group-addon">%</span> 
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label">A1</label>
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" class="form-control" name="a2">
+                <span class="input-group-addon">%</span> 
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label">F</label>
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" class="form-control" name="f">
+                <span class="input-group-addon">%</span> 
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label">S</label>
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" class="form-control" name="s">
+                <span class="input-group-addon">%</span> 
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label">Аномальный гемоглобин</label>
+        <div class="controls">
+            <select name="anom" class="form-control">
+                <option value=""> - нет - </option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="E">E</option>
+                <option value="H">H</option>
+                <option value="O">O</option>
+            </select>
+        </div>
+    </div>
+    <input type="hidden" name="pacient_id" value="{{ pacient.key.id() }}" />
+    <input type="hidden" name="analyze_value" value="" />
+    <input type="hidden" name="analyze_type" value="FractG" />
+    <button class="btn btn-default">Сохранить</button>
+</form>
+<script type="text/javascript">
+    (function($) {
+        $(function() {
+             var $form = $("#fact_gemog_form");
+             var $valueInput = $("[name=analyze_value]");
+             
+             var $inputs = $("input[type=text], select");
+             
+             $inputs.change(function() {
+                 
+                 var value = {};
+                 $inputs.each(function(i, el) {
+                     var $el = $(el);
+                     value[$el.attr("name")] = $el.val();
+                 });
+                 
+                $valueInput.val(JSON.stringify(value));
+             });
+        });
+    })(jQuery);
+</script>
+{% endblock %}
