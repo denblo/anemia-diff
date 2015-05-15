@@ -54,7 +54,7 @@
     <input type="hidden" name="pacient_id" value="{{ pacient.key.id() }}" />
     <input type="hidden" name="analyze_value" value="" />
     <input type="hidden" name="analyze_type" value="FractG" />
-    <button class="btn btn-default">Сохранить</button>
+    <button class="btn btn-primary">Сохранить</button>
 </form>
 <script type="text/javascript">
     (function($) {
@@ -73,7 +73,7 @@
                  });
                  
                 $valueInput.val(JSON.stringify(value));
-             });
+             }).chage();
         });
     })(jQuery);
 </script>

@@ -62,7 +62,15 @@ class Analyze:
         self.units = units
     
     def format_value(self, value):
-        return value + " " + self.units
+        return "%g %s" % (self.get_value(value), self.units)
+        
+    def get_value(self, raw_value):
+        try: 
+            value = float(raw_value) 
+        except Exception:
+            value = 0
+        
+        return value
 
 FE = Analyze("Fe", u"Железо", u"мкмоль/лЭ", "fe", AnalyzeNorms(
         Norm((13, 30), "male", 14),
@@ -120,21 +128,39 @@ MCV = Analyze("MCV", u"МЦВ", u"фл", "mcv",  AnalyzeNorms(
     )
 )
 
-B12 = Analyze("B12", u"B12", "", "b12", AnalyzeNorms(
-        Norm((0, 0))
-    )
-)
-Folats = Analyze("Folats", u"Фолаты", "", "folats", AnalyzeNorms(
-        Norm((0, 0))
-    )
-)
+class NoValueAnalyze(Analyze):
+    def __init__(self, key, title, edit_template):
+        Analyze.__init__(self, key, title, "", edit_template, AnalyzeNorms( Norm((0,0))))
+    
+    def format_value(self, value):
+        value = self.get_value(value)
+        
+        if value > 0:
+            return u'↑'
+        
+        if value < 0:
+            return u'↓'
+            
+        return u'N'
+
+B12 = NoValueAnalyze("B12", u"B12", "b12")
+    
+Folats = NoValueAnalyze("Folats", u"Фолаты", "folats")
 
 class FractGAnalyze(Analyze):
     def __init__(self, key, title, edit_template):
         Analyze.__init__(self, key, title, "", edit_template, AnalyzeNorms())
+        
+    def get_value(self, raw_value):
+        try: 
+            value = json.loads(raw_value)
+        except Exception:
+            value = {u'a':'',u'a2':'',u'f':'',u's':'',u'anom':''}
+        
+        return value
     
     def format_value(self, value):
-        value = json.loads(value)
+        value = self.get_value(value)
         items = filter(lambda x: not x[0] == u'anom', value.items())
         items_strs = [item[0] + "=" + item[1] + "%" for item in items]
         anom = value[u'anom']

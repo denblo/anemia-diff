@@ -336,7 +336,7 @@ class PacientPage(AppPage):
             if not 'FractG' in analyze_value_map:
                 return 'forms/analyze/fract_gemoglob.html'
 
-            FractG = json.loads(analyze_value_map['FractG'])
+            FractG = analyzes_map['FractG'].get_value(analyze_value_map['FractG'])
             
             try:
                 fg_a = float(FractG[u'a'])
