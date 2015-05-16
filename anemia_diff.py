@@ -85,11 +85,11 @@ menu_items = [
         ("/cabinet",u'Личный кабинет' ),
         ("/pacients",u'Пациенты' ),
         ("/stats", u'Статистика'),
-        ("/about", u'О программе')
+        # ("/about", u'О программе')
         ]
 
 anonymouse_menu_items = [
-        ("/about", u'О программе')
+        # ("/about", u'О программе')
         ]
 
 class BaseAuthHandler(webapp2.RequestHandler):
@@ -141,6 +141,10 @@ class PrivatePage(AppPage):
             self.abort(403)
 
         super(PrivatePage, self).get()
+        
+class HomePage(AppPage):
+    def get_page_template(self):
+        return 'home.html'
 
 class PacientsPage(PrivatePage):
     def get_template_context(self):
@@ -495,10 +499,9 @@ class PacientPage(AppPage):
         return 'forms/result/unknown.html'
 
 application = ndb.toplevel(webapp2.WSGIApplication([
-    ('/', AppPage),
+    ('/', HomePage),
     ('/pacients', PacientsPage),
     ('/stats', AppPage),
-    ('/about', AppPage),
     ('/cabinet', AppPage),
     ('/pacient-create', PacientCreate),
     ('/pacient/(\d+)', PacientPage),
