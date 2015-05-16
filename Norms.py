@@ -96,7 +96,7 @@ SRB = Analyze("SRB", u"СРБ", u"мг/л", "srb", AnalyzeNorms(
     )
 )
 
-COE = Analyze("COE", u"КОЕ", u"мм/час", "coe", AnalyzeNorms(
+COE = Analyze("COE", u"COЭ", u"мм/час", "coe", AnalyzeNorms(
         Norm((2, 10), "male"),
         Norm((2, 15), "female")
     )
@@ -107,23 +107,23 @@ Ret = Analyze("Ret", u"Ретикулоциты", u"%", "ret", AnalyzeNorms(
     )
 )
     
-WBC = Analyze("WBC", u"ВБЦ", u"10^9/л", "wbc", AnalyzeNorms(
+WBC = Analyze("WBC", u"WBC", u"10^9/л", "wbc", AnalyzeNorms(
         Norm((4, 9))
     )
 )
     
-RBC = Analyze("RBC", u"РБЦ", u"10^12/л", "rbc", AnalyzeNorms(
+RBC = Analyze("RBC", u"RBC", u"10^12/л", "rbc", AnalyzeNorms(
         Norm((4, 5), "male"),
         Norm((3.8, 4.5), "female")
     )
 )
 
-PLT = Analyze("PLT", u"ПЛТ", u"10^9/л", "plt",  AnalyzeNorms(
+PLT = Analyze("PLT", u"PLT", u"10^9/л", "plt",  AnalyzeNorms(
         Norm((150, 400))
     )
 )
 
-MCV = Analyze("MCV", u"МЦВ", u"фл", "mcv",  AnalyzeNorms(
+MCV = Analyze("MCV", u"MCV", u"фл", "mcv",  AnalyzeNorms(
         Norm((80, 100))
     )
 )
