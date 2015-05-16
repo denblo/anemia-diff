@@ -128,6 +128,16 @@ MCV = Analyze("MCV", u"MCV", u"фл", "mcv",  AnalyzeNorms(
     )
 )
 
+B12 = Analyze("B12", u"B12", u"пг/л", "b12",  AnalyzeNorms(
+        Norm((180, 900))
+    )
+)
+
+Folats = Analyze("Folats", u"Фолаты", u"нг/мл", "folats",  AnalyzeNorms(
+        Norm((3, 17))
+    )
+)
+
 class NoValueAnalyze(Analyze):
     def __init__(self, key, title, edit_template):
         Analyze.__init__(self, key, title, "", edit_template, AnalyzeNorms( Norm((0,0))))
@@ -143,9 +153,9 @@ class NoValueAnalyze(Analyze):
             
         return u'N'
 
-B12 = NoValueAnalyze("B12", u"B12", "b12")
+# B12 = NoValueAnalyze("B12", u"B12", "b12")
     
-Folats = NoValueAnalyze("Folats", u"Фолаты", "folats")
+# Folats = NoValueAnalyze("Folats", u"Фолаты", "folats")
 
 class FractGAnalyze(Analyze):
     def __init__(self, key, title, edit_template):

@@ -4,11 +4,10 @@
     <div class="form-group">
         <label class="control-label">Оцените значение показателя Фолаты</label>
         <div class="controls">
-            <select name="analyze_value" size="3" class="form-control">
-                <option value="-1">Пониженное</option>
-                <option value="1">Повышенное</option>
-                <option value="0">Нормальное</option>
-            </select>
+            <div class="input-group">
+                <input type="text" class="form-control" name="analyze_value">
+                <span class="input-group-addon">нг/мл</span> 
+            </div>
         </div>
     </div>
     <input type="hidden" name="pacient_id" value="{{ pacient.key.id() }}" />
