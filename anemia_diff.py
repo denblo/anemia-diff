@@ -295,7 +295,7 @@ class PacientPage(AppPage):
             # return 'forms/analyze/mch.html'
 
         if mcv_cmp.is_lower():
-            is_left_branch = False
+            # tree left branch start
             
             fe_cmp = user_analyzes.compare_value('Fe')
             ferritin_cmp = user_analyzes.compare_value('Ferritin')
@@ -303,79 +303,71 @@ class PacientPage(AppPage):
             if not fe_cmp.is_present():
                 return fe_cmp.get_template() 
             
-            # if not ferritin_cmp.is_present():
-            #     return ferritin_cmp.get_template()
-            
-            if fe_cmp.is_norm():
-                if not 'Ferritin' in analyze_value_map:
-                    return 'forms/analyze/ferritin.html'
-
-                Ferritin = analyze_value_map['Ferritin']
-                if Ferritin == VALUE_DOWN:
-                    is_left_branch = True
-
-            elif fe_cmp.is_lower():
-                is_left_branch = True
-
-            if is_left_branch:
+            if not ferritin_cmp.is_present():
+                return ferritin_cmp.get_template()
+                
+            if not fe_cmp.is_upper() and ferritin_cmp.is_lower():
                 return 'forms/result/zhda.html'
-
-            coe_cmp = user_analyzes.compare_value('COE')
-            srb_cmp = user_analyzes.compare_value('SRB')
             
-            if coe_cmp.is_present():
-                coe_srb_cmp = coe_cmp
-            else: 
-                coe_srb_cmp = srb_cmp
-                
-            if not coe_srb_cmp.is_present():
-                return 'forms/analyze/coe_srb.html'
+            if not fe_cmp.is_lower() and not ferritin_cmp.is_lower():
 
-            if coe_srb_cmp.is_lower() or coe_srb_cmp.is_lower():
-                return 'forms/result/unknown.html'
+                coe_cmp = user_analyzes.compare_value('COE')
+                srb_cmp = user_analyzes.compare_value('SRB')
                 
-            if coe_srb_cmp.is_upper():
-                return 'forms/result/ahz.html'
+                if coe_cmp.is_present():
+                    coe_srb_cmp = coe_cmp
+                else: 
+                    coe_srb_cmp = srb_cmp
+                    
+                if not coe_srb_cmp.is_present():
+                    return 'forms/analyze/coe_srb.html'
+    
+                if coe_srb_cmp.is_lower() or coe_srb_cmp.is_lower():
+                    return 'forms/result/unknown.html'
+                    
+                if coe_srb_cmp.is_upper():
+                    return 'forms/result/ahz.html'
+                    
+                if not 'FractG' in analyze_value_map:
+                    return 'forms/analyze/fract_gemoglob.html'
+    
+                FractG = analyzes_map['FractG'].get_value(analyze_value_map['FractG'])
                 
-            if not 'FractG' in analyze_value_map:
-                return 'forms/analyze/fract_gemoglob.html'
-
-            FractG = analyzes_map['FractG'].get_value(analyze_value_map['FractG'])
-            
-            try:
-                fg_a = float(FractG[u'a'])
-            except ValueError:
-                fg_a = 0
+                try:
+                    fg_a = float(FractG[u'a'])
+                except ValueError:
+                    fg_a = 0
+                    
+                try:
+                    fg_a2 = float(FractG[u'a2'])
+                except ValueError:
+                    fg_a2 = 0
+                    
+                try:
+                    fg_f = float(FractG[u'f'])
+                except ValueError:
+                    fg_f = 0
+                    
+                try:
+                    fg_s = float(FractG[u's'])
+                except ValueError:
+                    fg_s = 0
+                    
+                fg_anom = FractG[u'anom']
                 
-            try:
-                fg_a2 = float(FractG[u'a2'])
-            except ValueError:
-                fg_a2 = 0
-                
-            try:
-                fg_f = float(FractG[u'f'])
-            except ValueError:
-                fg_f = 0
-                
-            try:
-                fg_s = float(FractG[u's'])
-            except ValueError:
-                fg_s = 0
-                
-            fg_anom = FractG[u'anom']
-            
-            if fg_a > 97 and fg_a2 < 3 and fg_f < 1:
-                return 'forms/result/ahz_2.html'
-                
-            if fg_a2 > 3 or fg_f > 1:
-                return 'forms/result/beta_talassem.html'
-                
-            if fg_s > 0:
-                return 'forms/result/gemoglobinopaty_s.html'
-                
-            if fg_a < 97 and fg_anom:
-                return 'forms/result/gemoglobinopaty_other.html'
-
+                if fg_a > 97 and fg_a2 < 3 and fg_f < 1:
+                    return 'forms/result/ahz_2.html'
+                    
+                if fg_a2 > 3 or fg_f > 1:
+                    return 'forms/result/beta_talassem.html'
+                    
+                if fg_s > 0:
+                    return 'forms/result/gemoglobinopaty_s.html'
+                    
+                if fg_a < 97 and fg_anom:
+                    return 'forms/result/gemoglobinopaty_other.html'
+    
+            # tree left branch end
             return 'forms/result/unknown.html'
 
         if mcv_cmp.is_upper():
